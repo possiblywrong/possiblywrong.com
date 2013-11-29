@@ -1,0 +1,468 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1024" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Kadai CMDOPTS</title>
+    <meta name="description" content="impress.js is a presentation tool based on the power of CSS3 transforms and transitions in modern browsers and inspired by the idea behind prezi.com." />
+    <meta name="author" content="Bartek Szopka" />
+
+    <!-- Fallback fonts from Google -->
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:regular,semibold,italic,italicsemibold|PT+Sans:400,700,400italic,700italic|PT+Serif:400,700,400italic,700italic" rel="stylesheet" />
+    <link href="css/impress-demo.css" rel="stylesheet" />
+    <link href="css/sh_acid.min.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="favicon.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+</head>
+
+<body class="impress-not-supported">
+
+<div class="fallback-message">
+    <p>Your browser <b>doesn't support the features required</b> by impress.js, so you are presented with a simplified version of this presentation.</p>
+    <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
+</div>
+
+<!--
+    
+    Now that's the core element used by impress.js.
+    
+    That's the wrapper for your presentation steps. In this element all the impress.js magic happens.
+    It doesn't have to be a `<div>`. Only `id` is important here as that's how the script find it.
+    
+    You probably won't need it now, but there are some configuration options that can be set on this element.
+    
+    To change the duration of the transition between slides use `data-transition-duration="2000"` giving it
+    a number of ms. It defaults to 1000 (1s).
+    
+    You can also control the perspective with `data-perspective="500"` giving it a number of pixels.
+    It defaults to 1000. You can set it to 0 if you don't want any 3D effects.
+    If you are willing to change this value make sure you understand how CSS perspective works:
+    https://developer.mozilla.org/en/CSS/perspective
+    
+    But as I said, you won't need it for now, so don't worry - there are some simple but interesing things
+    right around the corner of this tag ;)
+    
+-->
+<div id="impress">
+
+    <!--
+        This is an example of step element being scaled.
+        Again, we use a `data-` attribute, this time it's `data-scale="4"`, so it means that this
+        element will be 4 times larger than the others.
+        From presentation and transitions point of view it means, that it will have to be scaled
+        down (4 times) to make it back to it's correct size.
+    -->
+    <div id="title" class="step" data-x="0" data-y="0" data-scale="4">
+        <h1>Kadai CMDOPTS</h1>
+        <span class="footnote"></span>
+    </div>
+
+    <div class="step" data-x="0" data-y="3000" data-scale="4">
+        <p>Twitter: @possiblywrong</p>
+        <p>Bitbucket: <a href="https://bitbucket.org/dconlon">dconlon</a></p>
+    </div>
+    <div class="step" data-x="0" data-y="6000" data-scale="4">
+        <p><ul>
+            <li><a href="http://software.clapper.org/argot/">Argot</a></li>
+            <li><a href="https://github.com/jstrachan/scopt">scopt</a></li>
+            <li><a href="https://github.com/Rogach/scallop">Scallop</a></li>
+            <li><a href="https://github.com/paulp/optional">Optional</a></li>
+            <li><a href="https://code.google.com/p/parse-cmd/wiki/AScalaParserClass">AScalaParserClass</a></li>
+            <li><a href="http://frugalmechanic.com/tech/scala-optparse/index.html">scala-optparse</a></li>
+            <li><a href="http://cmdoption.tototec.de/cmdoption/projects/cmdoption/wiki">CmdOption</a></li>
+            <li></li>
+            <li>DIY</li>
+           </ul>
+        </p>
+    </div>
+    <div class="step" data-x="0" data-y="9000" data-scale="4">
+        <p>Let's see where <strong>types</strong> can take us...</p>
+    </div>
+
+    <div class="step" data-x="0" data-y="-9000" data-rotate-x="-90" data-rotate-y="0" data-scale="3">
+        <p class="code">&gt; ./prog --name Robert Paulson --age 65</p></br>
+        <p class="code">&gt; ./prog --host www.atlassian.com -p 8080</p>
+    </div>
+
+    <div class="step" data-x="4000" data-y="-9000" data-rotate-x="-90" data-rotate-y="0" data-scale="3">
+        <pre class="sh_scala">
+import kadai.cmdopts._
+
+object Example extends App {
+  case class Name(fst: String, sur: String)
+
+  object CFG extends CmdOpts(args) {
+       // name has type Option[Name]
+       lazy val name = opt("--name", (x: String, y:String) => Name(x, y))
+  }
+
+  println(CFG.name)
+}
+</pre>
+    </div>
+    <div class="step" data-x="8000" data-y="-9000" data-rotate-x="-90" data-rotate-y="0" data-scale="3">
+        <p>implicit resolution</p>
+        <p class="code">Compiler give me something that has this shape/type!</p>
+        <p>HList / Heterogeneous List</p>
+        <p class="code">The progeny of TupleX and List[_].</p>
+    </div>
+    <div class="step hidden" data-x="12000" data-y="-9000" data-rotate-x="-90" data-rotate-y="0" data-scale="3">
+        <pre class="sh_scala">
+abstract class CmdOpts[T](rawdata: Seq[T]) {
+
+  def opt[H <: HList, N <: Nat, F, R](t: T, f: F)(
+    implicit hlister: FnHListerAux[F, H => R],
+    length: LengthAux[H, N],
+    toHList: FromTraversable[H],
+    arity: ToInt[N]): Option[R] =
+    for {
+      ts <- if (arity() > 0) tailfind(t)
+                else rawdata.find { _ == t }.map { _ => Nil }
+      hl <- toHList(ts.take(arity()))
+      op <- nonFatalCatch.opt { hlister(f)(hl) }
+    } yield op
+
+  private def tailfind(t: T): Option[Seq[T]] =
+    rawdata.dropWhile(_ != t).tailOption
+}
+</pre>
+    </div>
+    <div class="step" data-x="16000" data-y="-9000" data-rotate-x="-90" data-rotate-y="0" data-scale="3">
+        <p>hlister: FnHListerAux[F, H => R]</p>
+        <p class="code">Takes a function and returns a new function that can be applied to an HList rather than an argument tuple.</p><br/>
+        <p class="code">trait Function1[-T1, +R] extends AnyRef</p>
+    </div>
+    <div class="step" data-x="20000" data-y="-9000" data-rotate-x="-90" data-rotate-y="0" data-scale="3">
+        <p>length: LengthAux[H, N]</p>
+        <p class="code">Simply a witness for the length of the HList.</p>
+    </div>
+    <div class="step" data-x="24000" data-y="-9000" data-rotate-x="-90" data-rotate-y="0" data-scale="3">
+        <p>toHList: FromTraversable[H]</p>
+        <p class="code">A function to convert a traversable into an HList.</p><br/>
+        <p class="code">toHList: Option[H]<br/>
+                        (x:String, y:String) =&gt; Name(x,y)<br/>
+                        Arg HList type, String :: String :: HNil</p>
+    </div>
+    <div class="step" data-x="28000" data-y="-9000" data-rotate-x="-90" data-rotate-y="0" data-scale="3">
+        <p>arity: ToInt[N]</p>
+        <p class="code">A function that returns a single integer.</p>
+    </div>
+    <div class="step" data-x="32000" data-y="-9000" data-rotate-x="-90" data-rotate-y="0" data-scale="3">
+        <p>WHY?</p>
+    </div>
+    <div class="step hidden" data-x="32000" data-y="-9000" data-rotate-x="-90" data-rotate-y="0" data-scale="3">
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <p class="code">Extract type information and use it at runtime.</p>
+    </div>
+    <div class="step hidden" data-x="36000" data-y="-9000" data-rotate-x="-90" data-rotate-y="0" data-scale="3">
+        <pre class="sh_scala">
+abstract class CmdOpts[T](rawdata: Seq[T]) {
+
+  def opt[H <: HList, N <: Nat, F, R](t: T, f: F)(
+    implicit hlister: FnHListerAux[F, H => R],
+    length: LengthAux[H, N],
+    toHList: FromTraversable[H],
+    arity: ToInt[N]): Option[R] =
+    for {
+      ts <- if (arity() > 0) tailfind(t)
+            else rawdata.find { _ == t }.map { _ => Nil }
+      hl <- toHList(ts.take(arity()))
+      op <- nonFatalCatch.opt { hlister(f)(hl) }
+    } yield op
+
+  private def tailfind(t: T): Option[Seq[T]] =
+    rawdata.dropWhile(_ != t).tailOption
+}
+</pre>
+    </div>
+    <div class="step hidden" data-x="36000" data-y="-27000" data-z="-1000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p>Type-level Programming</p>
+        <p class="code">via <a href="https://github.com/milessabin/shapeless">Shapeless</a></p>
+    </div>
+    <div class="step hidden" data-x="36000" data-y="-27000" data-z="3000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p>FnHListerAux</p>
+        <pre class="sh_scala">
+implicit def fnHLister1[A, Res] =
+   new FnHListerAux[(A) => Res, (A :: HNil) => Res] {
+         def apply(fn : (A) => Res) = (l : A :: HNil) => l match { case a :: HNil => fn(a) }
+   }
+</pre><br/>
+      <p class="code">&nbsp;</p>
+    </div>
+    <div class="step hidden" data-x="36000" data-y="-27000" data-z="3000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p>FnHListerAux</p>
+        <pre class="sh_scala">
+implicit def fnHLister1[A, Res] =
+   new FnHListerAux[(A) => Res, (A :: HNil) => Res] {
+         def apply(fn : (A) => Res) = (l : A :: HNil) => l match { case a :: HNil => fn(a) }
+   }
+</pre><br/>
+        <p class="code">...yes there is an fnHLister22</p>
+    </div>
+    <div class="step hidden" data-x="36000" data-y="-27000" data-z="7000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p>LengthAux</p>
+        <pre class="sh_scala">
+trait LengthAux[-L <: HList, N <: Nat] {
+  def apply() : N
+}
+
+object LengthAux {
+  import Nat._
+
+  implicit def hnilLength = new LengthAux[HNil, _0] {
+       def apply() = _0
+  }
+
+  implicit def hlistLength[H, T <: HList, N <: Nat](
+      implicit lt : LengthAux[T, N], sn : Succ[N]) =
+         new LengthAux[H :: T, Succ[N]] {
+               def apply() = sn
+         }
+}
+</pre>
+    </div>
+    <div class="step hidden" data-x="36000" data-y="-27000" data-z="11000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p>Example: Name (String :: String :: HNil)</p>
+        <p class="code">Target, LengthAux[String :: String :: HNil, N]</p></br>
+        <p class="code">&nbsp;</p>
+        <p class="code">&nbsp;</p>
+    </div>
+    <div class="step hidden" data-x="36000" data-y="-27000" data-z="11000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p>&nbsp;</p>
+        <p class="code">&nbsp;</p></br>
+        <p class="code">got LengthAux[String :: String :: HNil, Succ[N1]]</p>
+        <p class="code">need LengthAux[String :: HNil, N1] &amp; Succ[N1]</p>
+    </div>
+    <div class="step hidden" data-x="32000" data-y="-27000" data-z="11000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p class="code">got LengthAux[String :: HNil,Succ[N2]]</p>
+        <p class="code">need LengthAux[HNil,N2] &amp; Succ[N2]</p>
+    </div>
+    <div class="step hidden" data-x="32000" data-y="-27000" data-z="17000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p>Base case</p>
+        <p class="code">LengthAux[HNil,N2] implies N2 is _0</p></br>
+<pre class="sh_scala">
+implicit def hnilLength = new LengthAux[HNil, _0] {
+     def apply() = _0
+}
+</pre>
+    </div>
+    <div class="step hidden" data-x="36000" data-y="-27000" data-z="17000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p class="code">got LengthAux[HNil,_0] &amp; Succ[_0]</p>
+        <p class="code">implies LengthAux[String :: HNil,Succ[_0]]</p>
+    </div>
+    <div class="step hidden" data-x="40000" data-y="-27000" data-z="17000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p class="code">got LengthAux[String :: HNil, Succ[_0]] &amp; Succ[Succ[_0]]</p>
+        <p class="code">implies LengthAux[String :: String :: HNil, Succ[Succ[_0]]</p>
+    </div>
+    <div class="step hidden" data-x="40000" data-y="-27000" data-z="21000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p class="code">N == Succ[Succ[_0]]</p></br>
+        <p class="code">Succ[Succ[_0]] == _2</p></br>
+        <p>Satisfied &amp; <i>nearly proved...</i></p>
+    </div>
+    <div class="step hidden" data-x="40000" data-y="-27000" data-z="25000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <pre class="sh_scala">
+trait LengthAux[-L <: HList, N <: Nat] {
+  def apply() : N
+}
+
+object LengthAux {
+  import Nat._
+
+  implicit def hnilLength = new LengthAux[HNil, _0] {
+       def apply() = _0
+  }
+
+  implicit def hlistLength[H, T <: HList, N <: Nat](
+      implicit lt : LengthAux[T, N], sn : Succ[N]) =
+         new LengthAux[H :: T, Succ[N]] {
+               def apply() = sn
+         }
+}
+</pre>
+    </div>
+    <div class="step hidden" data-x="40000" data-y="-27000" data-z="29000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p class="code">toHList/FromTraversable &amp; arity/ToInt</p></br>
+        <p class="code">are derived similarly to FnHListerAux</p></br>
+        <p>Done!</p>
+    </div>
+    <div class="step hidden" data-x="40000" data-y="-27000" data-z="33000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <p>Code =&gt; <a href="https://bitbucket.org/atlassian/kadai">bitbucket.org/atlassian/kadai</a></p></br>
+        <p>Credits</p>
+        <p class="code">impress.js =&gt; <a href="https://github.com/bartaz/impress.js">HERE</a></p>
+        <p class="code">Type =&gt; <a href="http://www.fontspring.com/fonts/paragraph/tertre">Tertre</a>/<a href="http://www.fontspring.com/fonts/paragraph/tertre#webfont_license">License</a></p>
+    </div>
+    <div class="step hidden" data-x="40000" data-y="-27000" data-z="37000" data-rotate-y="90" data-rotate-x="180" data-scale="2">
+        <pre class="sh_scala">
+abstract class CmdOpts[T](rawdata: Seq[T]) {
+
+  def opt[H <: HList, N <: Nat, F, R](t: T, f: F)(
+    implicit hlister: FnHListerAux[F, H => R],
+    length: LengthAux[H, N],
+    toHList: FromTraversable[H],
+    arity: ToInt[N]): Option[R] =
+    for {
+      ts <- if (arity() > 0) tailfind(t)
+            else rawdata.find { _ == t }.map { _ => Nil }
+      hl <- toHList(ts.take(arity()))
+      op <- nonFatalCatch.opt { hlister(f)(hl) }
+    } yield op
+
+  private def tailfind(t: T): Option[Seq[T]] =
+    rawdata.dropWhile(_ != t).tailOption
+}
+</pre>
+    </div>
+
+    <!--
+        So to make a summary of all the possible attributes used to position presentation steps, we have:
+        * `data-x`, `data-y`, `data-z` - they define the position of **the center** of step element on
+            the canvas in pixels; their default value is 0;
+        * `data-rotate-x`, `data-rotate-y`, 'data-rotate-z`, `data-rotate` - they define the rotation of
+            the element around given axis in degrees; their default value is 0; `data-rotate` and `data-rotate-z`
+            are exactly the same;
+        * `data-scale` - defines the scale of step element; default value is 1
+        These values are used by impress.js in CSS transformation functions, so for more information consult
+        CSS transfrom docs: https://developer.mozilla.org/en/CSS/transform
+    -->
+    <div id="overview" class="step" data-x="3000" data-y="1500" data-scale="30">
+    </div>
+
+</div>
+
+<!--
+    
+    Hint is not related to impress.js in any way.
+    
+    But it can show you how to use impress.js features in creative way.
+    
+    When the presentation step is shown (selected) its element gets the class of "active" and the body element
+    gets the class based on active step id `impress-on-ID` (where ID is the step's id)... It may not be
+    so clear because of all these "ids" in previous sentence, so for example when the first step (the one with
+    the id of `bored`) is active, body element gets a class of `impress-on-bored`.
+    
+    This class is used by this hint below. Check CSS file to see how it's shown with delayed CSS animation when
+    the first step of presentation is visible for a couple of seconds.
+    
+    ...
+    
+    And when it comes to this piece of JavaScript below ... kids, don't do this at home ;)
+    It's just a quick and dirty workaround to get different hint text for touch devices.
+    In a real world it should be at least placed in separate JS file ... and the touch content should be
+    probably just hidden somewhere in HTML - not hard-coded in the script.
+    
+    Just sayin' ;)
+    
+-->
+<div class="hint">
+    <p>Use a spacebar or arrow keys to navigate</p>
+</div>
+<script>
+if ("ontouchstart" in document.documentElement) { 
+    document.querySelector(".hint").innerHTML = "<p>Tap on the left or right to navigate</p>";
+}
+</script>
+
+<!--
+    
+    Last, but not least.
+    
+    To make all described above really work, you need to include impress.js in the page.
+    I strongly encourage to minify it first.
+    
+    In here I just include full source of the script to make it more readable.
+    
+    You also need to call a `impress().init()` function to initialize impress.js presentation.
+    And you should do it in the end of your document. Not only because it's a good practice, but also
+    because it should be done when the whole document is ready.
+    Of course you can wrap it in any kind of "DOM ready" event, but I was too lazy to do so ;)
+    
+-->
+<script src="js/sh_main.min.js"></script>
+<script src="js/sh_scala.js"></script>
+<script>sh_highlightDocument();</script>
+<script src="js/impress.js"></script>
+<script>impress().init();</script>
+<script>
+   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+   })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+   ga('create', 'UA-41598452-1', 'possiblywrong.com');
+   ga('send', 'pageview');
+</script>
+<!--
+    
+    The `impress()` function also gives you access to the API that controls the presentation.
+    
+    Just store the result of the call:
+    
+        var api = impress();
+    
+    and you will get three functions you can call:
+    
+        `api.init()` - initializes the presentation,
+        `api.next()` - moves to next step of the presentation,
+        `api.prev()` - moves to previous step of the presentation,
+        `api.goto( idx | id | element, [duration] )` - moves the presentation to the step given by its index number
+                id or the DOM element; second parameter can be used to define duration of the transition in ms,
+                but it's optional - if not provided default transition duration for the presentation will be used.
+    
+    You can also simply call `impress()` again to get the API, so `impress().next()` is also allowed.
+    Don't worry, it wont initialize the presentation again.
+    
+    For some example uses of this API check the last part of the source of impress.js where the API
+    is used in event handlers.
+    
+-->
+
+</body>
+</html>
+
+<!--
+    
+    Now you know more or less everything you need to build your first impress.js presentation, but before
+    you start...
+    
+    Oh, you've already cloned the code from GitHub?
+    
+    You have it open in text editor?
+    
+    Stop right there!
+    
+    That's not how you create awesome presentations. This is only a code. Implementation of the idea that
+    first needs to grow in your mind.
+    
+    So if you want to build great presentation take a pencil and piece of paper. And turn off the computer.
+    
+    Sketch, draw and write. Brainstorm your ideas on a paper. Try to build a mind-map of what you'd like
+    to present. It will get you closer and closer to the layout you'll build later with impress.js.
+    
+    Get back to the code only when you have your presentation ready on a paper. It doesn't make sense to do
+    it earlier, because you'll only waste your time fighting with positioning of useless points.
+    
+    If you think I'm crazy, please put your hands on a book called "Presentation Zen". It's all about 
+    creating awesome and engaging presentations.
+    
+    Think about it. 'Cause impress.js may not help you, if you have nothing interesting to say.
+    
+-->
+
+<!--
+    
+    Are you still reading this?
+    
+    For real?
+    
+    I'm impressed! Feel free to let me know that you got that far (I'm @bartaz on Twitter), 'cause I'd like
+    to congratulate you personally :)
+    
+    But you don't have to do it now. Take my advice and take some time off. Make yourself a cup of coffee, tea,
+    or anything you like to drink. And raise a glass for me ;)
+    
+    Cheers!
+    
+-->
+
